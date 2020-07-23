@@ -6,6 +6,7 @@ A React Native application which retrieves 10 random jokes from Jokes API that c
 - Locally store state of jokes (liked/disliked)
 - Interactive, fun animations!
 - On refresh, load 10 new jokes
+- Includes 10 local jokes (with the first being my own joke addition!) to test local storage
 
 ## TO RUN:
 npx react-native start
