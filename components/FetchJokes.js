@@ -13,13 +13,13 @@ export default class Jokes extends Component {
     // receive state from props
     const { jokesData, refreshing } = this.props.state;
 
+    // scroll animation values
     const y = new Animated.Value(0);
     const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y } } }], {
         useNativeDriver: true,
     });
 
         return (
-            <>
             <AnimatedFlatlist
                 style={styles.flatList}
                 data={jokesData}
@@ -40,7 +40,6 @@ export default class Jokes extends Component {
                 scrollEventThrottle={16}
                 {...{onScroll}}
             />
-        </>
         );
     }
 };

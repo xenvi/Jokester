@@ -9,11 +9,9 @@ export default class Store extends Component {
   changeHeader = (value) => {
     if (value == "smile" && !this.state.showSmile) {
         this.setState({ showSmile: true });
-        console.log("smiled");
     }
     if (value == "frown" && this.state.showSmile) {
         this.setState({ showSmile: false });
-        console.log("frowned");
     }
   };
   render() {

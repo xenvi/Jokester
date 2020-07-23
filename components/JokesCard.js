@@ -55,8 +55,7 @@ export default class JokesCard extends Component {
                 disliked: false,
                 likedBackgroundColor: '#7DE4A6',
                 dislikedBackgroundColor: 'rgba(0,0,0, 0.1)'
-            },
-                this.setStorageData)
+            }, this.setStorageData)
         }
     }
     handleDislike = async () => {

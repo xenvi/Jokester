@@ -43,7 +43,7 @@ export default class App extends Component {
       console.log(err);
     }
     
-    // // local json jokes to test async storage - the first joke is my own little addition =)
+    // // local json jokes to test async storage - the first joke with id 999 is my own little addition =)
     // const localJokesData = require('./random_ten_storage.json');
     // this.setState({
     //   loading: false,
