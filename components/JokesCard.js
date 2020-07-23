@@ -8,6 +8,7 @@ import smile from '../assets/images/smile.png';
 import frown from '../assets/images/frown.png';
 
 export default class JokesCard extends Component {
+    _isMounted = false;
     constructor(props) {
         super(props);
         this.state = {
@@ -23,11 +24,16 @@ export default class JokesCard extends Component {
       }
 
       componentDidMount() {
+        this._isMounted = true;
         // retrieve local data
           this.getStorageData();
       }
 
-    handleLike = async () => {
+      componentWillUnmount() {
+        this._isMounted = false;
+      }
+
+    handleLike = () => {
         // animate button
         Animated.sequence([
             Animated.timing(this.state.likeBtnScale, {
@@ -50,15 +56,17 @@ export default class JokesCard extends Component {
         // on like, if not already liked, change background green and reset dislike state
         // store state in local storage
         if (!this.state.liked) {
-            this.setState({
-                liked: true,
-                disliked: false,
-                likedBackgroundColor: '#7DE4A6',
-                dislikedBackgroundColor: 'rgba(0,0,0, 0.1)'
-            }, this.setStorageData)
+            if (this._isMounted) {
+                this.setState({
+                    liked: true,
+                    disliked: false,
+                    likedBackgroundColor: '#7DE4A6',
+                    dislikedBackgroundColor: 'rgba(0,0,0, 0.1)'
+                }, this.setStorageData)
+            }
         }
     }
-    handleDislike = async () => {
+    handleDislike = () => {
         // animate button
         Animated.sequence([
             Animated.timing(this.state.dislikeBtnScale, {
@@ -81,12 +89,14 @@ export default class JokesCard extends Component {
         // on dislike, if not already disliked, change background red and reset 'like' state
         // store state in local storage
         if(!this.state.disliked) {
-            this.setState({
-                liked: false,
-                disliked: true,
-                likedBackgroundColor: 'rgba(0,0,0, 0.1)',
-                dislikedBackgroundColor: '#FA8775'
-            }, this.setStorageData)
+            if (this._isMounted) {
+                this.setState({
+                    liked: false,
+                    disliked: true,
+                    likedBackgroundColor: 'rgba(0,0,0, 0.1)',
+                    dislikedBackgroundColor: '#FA8775'
+                }, this.setStorageData)
+            }
         }
     }
 
@@ -110,7 +120,7 @@ export default class JokesCard extends Component {
         const jokeId = this.props.item.id;
         try {
             let currentState = await AsyncStorage.getItem(`Joke ${jokeId}`).then((res) => JSON.parse(res));
-            if (currentState !== null) {
+            if (currentState !== null && this._isMounted) {
                 this.setState(currentState);
             }
         } catch(err) {
@@ -177,7 +187,7 @@ export default class JokesCard extends Component {
         return (
             <Store.Consumer>
                 {({changeHeader}) => (
-                <Animated.View style={[styles.card, { opacity, transform: [{ translateY }, { scale }] }]} onLayout={this._onLayoutEvent} key={item.id}>
+                <Animated.View style={[styles.card, { opacity, transform: [{ translateY }, { scale }] }]} onLayout={this._onLayoutEvent} key={index}>
                     <Text style={styles.setup}>{item.setup}</Text>
                     <Text style={styles.punchline}>{item.punchline}</Text>
                     <View style={styles.row}>
