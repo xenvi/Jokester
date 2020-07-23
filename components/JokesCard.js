@@ -169,7 +169,7 @@ export default class JokesCard extends Component {
         });
         const opacity = position.interpolate({
             inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-            outputRange: [0.5, 1, 1, 0.5],
+            outputRange: [0, 1, 1, 0],
             extrapolate: 'clamp',
         });
 

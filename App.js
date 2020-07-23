@@ -63,7 +63,7 @@ export default class App extends Component {
   render() {
     return (
       <Store>
-          <StatusBar barStyle="light-content" />
+          <StatusBar barStyle="dark-content" />
           <SafeAreaView style={styles.container}>
               <HeaderIcon />
               <Jokes state={this.state} onRefresh={this._onRefresh} />
