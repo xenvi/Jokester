@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import { View, Image, RefreshControl, FlatList, StyleSheet } from "react-native";
+import { View, RefreshControl, FlatList, StyleSheet, Animated } from "react-native";
 // components
 import JokesCard from "./JokesCard";
-// assets
-import smile from '../assets/images/smile.png';
+
+const AnimatedFlatlist = Animated.createAnimatedComponent(FlatList);
 
 export default class Jokes extends Component {
     refreshHandler = () => {
@@ -12,19 +12,20 @@ export default class Jokes extends Component {
     render() {
     // receive state from props
     const { jokesData, refreshing } = this.props.state;
+
+    const y = new Animated.Value(0);
+    const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y } } }], {
+        useNativeDriver: true,
+    });
+
         return (
             <>
-            <FlatList
+            <AnimatedFlatlist
                 style={styles.flatList}
                 data={jokesData}
                 keyExtractor={item => item.id.toString()}
-                renderItem={({ item }) =>
-                    <JokesCard item={item} />
-                }
-                ListHeaderComponent={
-                    <View style={styles.smileHeaderWrapper}>
-                        <Image source={smile} style={styles.smileHeader}></Image>
-                    </View>
+                CellRendererComponent={({ item, index }) =>
+                    <JokesCard index={index} item={item} y={y} />
                 }
                 ListFooterComponent={
                     <View style={styles.flatlistBottomSpacing}>
@@ -36,7 +37,9 @@ export default class Jokes extends Component {
                       onRefresh={this.refreshHandler}
                     />
                   }
-                 />
+                scrollEventThrottle={16}
+                {...{onScroll}}
+            />
         </>
         );
     }
@@ -46,13 +49,7 @@ const styles = StyleSheet.create({
     flatList: {
         padding: 15
     },
-    smileHeaderWrapper: {
-        width: '100%',
-        alignItems: 'center',
-        paddingTop: 20,
-        paddingBottom: 30
-    },
     flatlistBottomSpacing: {
-        padding: 25
+        padding: 50
     }
   });

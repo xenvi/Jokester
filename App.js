@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 // components
 import Jokes from './components/FetchJokes';
+import HeaderIcon from './components/HeaderIcon';
+import Store from './components/Store';
 
 export default class App extends Component {
   constructor(props) {
@@ -13,11 +15,12 @@ export default class App extends Component {
     this.state = {
         loading: false,
         jokesData: null,
-        refreshing: false
+        refreshing: false,
+        showSmile: true
     };
   }
   componentDidMount() {
-    // on load, fetch jokes
+    // on mount, fetch jokes
     this.fetchJokes();
   }
 
@@ -26,26 +29,26 @@ export default class App extends Component {
         loading: true
     })
     
-    // // fetch 10 random jokes and set to state
-    // try {
-    //   await fetch('https://official-joke-api.appspot.com/random_ten')
-    //   .then(res => res.json())
-    //   .then(data => {
-    //       this.setState({
-    //           loading: false,
-    //           jokesData: data
-    //       })
-    //   })
-    // } catch (err) {
-    //   console.log(err);
-    // }
+    // fetch 10 random jokes and set to state
+    try {
+      await fetch('https://official-joke-api.appspot.com/random_ten')
+      .then(res => res.json())
+      .then(data => {
+          this.setState({
+              loading: false,
+              jokesData: data
+          })
+      })
+    } catch (err) {
+      console.log(err);
+    }
     
-    // local json jokes to test async storage
-    const localJokesData = require('./random_ten_storage.json');
-    this.setState({
-      loading: false,
-      jokesData: localJokesData
-    })
+    // // local json jokes to test async storage - the first joke is my own little addition =)
+    // const localJokesData = require('./random_ten_storage.json');
+    // this.setState({
+    //   loading: false,
+    //   jokesData: localJokesData
+    // })
   };
 
   _onRefresh = () => {
@@ -59,12 +62,13 @@ export default class App extends Component {
 
   render() {
     return (
-      <>
-        <StatusBar barStyle="light-content" />
-        <SafeAreaView style={styles.container}>
-            <Jokes state={this.state} onRefresh={this._onRefresh} />
-        </SafeAreaView>
-      </>
+      <Store>
+          <StatusBar barStyle="light-content" />
+          <SafeAreaView style={styles.container}>
+              <HeaderIcon />
+              <Jokes state={this.state} onRefresh={this._onRefresh} />
+          </SafeAreaView>
+      </Store>
     )
   }
 };
@@ -73,5 +77,11 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     alignItems: 'center'
-  }
+  },
+  headerWrapper: {
+      width: '100%',
+      alignItems: 'center',
+      paddingTop: 20,
+      paddingBottom: 30
+  },
 });

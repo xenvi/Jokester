@@ -1,6 +1,8 @@
 import React, { Component } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions } from "react-native";
 import AsyncStorage from '@react-native-community/async-storage';
+// components
+import Store from './Store';
 // assets
 import smile from '../assets/images/smile.png';
 import frown from '../assets/images/frown.png';
@@ -12,7 +14,11 @@ export default class JokesCard extends Component {
             liked: false,
             disliked: false,
             likedBackgroundColor: 'rgba(0,0,0, 0.1)',
-            dislikedBackgroundColor: 'rgba(0,0,0, 0.1)'
+            dislikedBackgroundColor: 'rgba(0,0,0, 0.1)',
+            height: 0,
+            yWindow: 0,
+            likeBtnScale: new Animated.Value(1),
+            dislikeBtnScale: new Animated.Value(1),
         };
       }
 
@@ -22,6 +28,25 @@ export default class JokesCard extends Component {
       }
 
     handleLike = async () => {
+        // animate button
+        Animated.sequence([
+            Animated.timing(this.state.likeBtnScale, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: false
+            }),
+            Animated.timing(this.state.likeBtnScale, {
+                toValue: 2,
+                duration: 500,
+                useNativeDriver: false
+            }),
+            Animated.timing(this.state.likeBtnScale, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: false
+            })
+        ]).start();
+
         // on like, if not already liked, change background green and reset dislike state
         // store state in local storage
         if (!this.state.liked) {
@@ -30,11 +55,30 @@ export default class JokesCard extends Component {
                 disliked: false,
                 likedBackgroundColor: '#7DE4A6',
                 dislikedBackgroundColor: 'rgba(0,0,0, 0.1)'
-            }, this.setStorageData)
-            
+            },
+                this.setStorageData)
         }
     }
     handleDislike = async () => {
+        // animate button
+        Animated.sequence([
+            Animated.timing(this.state.dislikeBtnScale, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: false
+            }),
+            Animated.timing(this.state.dislikeBtnScale, {
+                toValue: 2,
+                duration: 500,
+                useNativeDriver: false
+            }),
+            Animated.timing(this.state.dislikeBtnScale, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: false
+            })
+        ]).start();
+
         // on dislike, if not already disliked, change background red and reset 'like' state
         // store state in local storage
         if(!this.state.disliked) {
@@ -43,7 +87,7 @@ export default class JokesCard extends Component {
                 disliked: true,
                 likedBackgroundColor: 'rgba(0,0,0, 0.1)',
                 dislikedBackgroundColor: '#FA8775'
-            }, this.setStorageData);
+            }, this.setStorageData)
         }
     }
 
@@ -75,27 +119,84 @@ export default class JokesCard extends Component {
         }
     }
 
+    // get height of card
+    _onLayoutEvent = (event) => {
+        this.setState({height: event.nativeEvent.layout.height, yWindow: event.nativeEvent.layout.y});
+    }
+
     render() {
-        const { item } = this.props;
+        const { index, item, y } = this.props;
+
+        // animate flatlist
+        const PADDING = 15;
+        const CARD_HEIGHT = this.state.height + PADDING * 2;
+        const { height: wHeight } = Dimensions.get("window");
+        const height = wHeight;
+        const flatlistYPosition = this.state.yWindow;
+        const position = Animated.subtract(flatlistYPosition, y);
+        const isDisappearing = -CARD_HEIGHT;
+        const isTop = 0;
+        const isBottom = height - CARD_HEIGHT;
+        const isAppearing = height;
+        const translateY = Animated.add(
+            Animated.add(
+                y,
+                y.interpolate({
+                    inputRange: [0, flatlistYPosition],
+                    outputRange: [0, -flatlistYPosition],
+                    extrapolateRight: "clamp",
+                })
+            ),
+            position.interpolate({
+                inputRange: [isBottom, isAppearing],
+                outputRange: [0, -CARD_HEIGHT / 4],
+                extrapolate: "clamp",
+            }),
+        );
+        const scale = position.interpolate({
+            inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+            outputRange: [0.5, 1, 1, 0.5],
+            extrapolate: 'clamp',
+        });
+        const opacity = position.interpolate({
+            inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+            outputRange: [0.5, 1, 1, 0.5],
+            extrapolate: 'clamp',
+        });
+
+        // animate button
+        const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);   
+        const scaleLikeBtn = this.state.likeBtnScale.interpolate({
+            inputRange: [0, 1, 2],
+            outputRange: [0.7, 1, 1.1]
+        });
+        const scaleDislikeBtn = this.state.dislikeBtnScale.interpolate({
+            inputRange: [0, 1, 2],
+            outputRange: [0.7, 1, 1.1]
+        })
 
         return (
-                <View style={styles.card} key={item.id}>
+            <Store.Consumer>
+                {({changeHeader}) => (
+                <Animated.View style={[styles.card, { opacity, transform: [{ translateY }, { scale }] }]} onLayout={this._onLayoutEvent} key={item.id}>
                     <Text style={styles.setup}>{item.setup}</Text>
                     <Text style={styles.punchline}>{item.punchline}</Text>
                     <View style={styles.row}>
-                        <TouchableOpacity
-                            onPress={this.handleDislike}
-                            style={[styles.iconBtn, {backgroundColor: this.state.dislikedBackgroundColor}]}>
+                        <AnimatedTouchable
+                            onPress={() => {this.handleDislike(); changeHeader("frown") }}
+                            style={[styles.iconBtn, { backgroundColor: this.state.dislikedBackgroundColor, transform: [{scaleX: scaleDislikeBtn}, {scaleY: scaleDislikeBtn}] }]}>
                             <Image source={frown} style={styles.cardIcon} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={this.handleLike}
-                            style={[styles.iconBtn, {backgroundColor: this.state.likedBackgroundColor}]}
+                        </AnimatedTouchable>
+                        <AnimatedTouchable
+                            onPress={() => {this.handleLike(); changeHeader("smile") }}
+                            style={[styles.iconBtn, { backgroundColor: this.state.likedBackgroundColor, transform: [{scaleX: scaleLikeBtn}, {scaleY: scaleLikeBtn}] }]}
                             >
                             <Image source={smile} style={styles.cardIcon} />
-                        </TouchableOpacity>
+                        </AnimatedTouchable>
                     </View>
-                </View>
+                </Animated.View>
+                )}
+            </Store.Consumer>
         )
     }
 }
